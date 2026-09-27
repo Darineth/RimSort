@@ -114,7 +114,8 @@ class _FolderSizeSignalHub(QObject):
     thread.
     """
 
-    result = Signal(str, int, int)
+    # Size is passed as object: Qt's int is 32-bit and overflows for folders > 2 GiB
+    result = Signal(str, int, object)
     error = Signal(str, int)
 
 
