@@ -517,6 +517,20 @@ class TestFolderSizeRequestWorker:
         assert uuid == str(tmp_path)
         assert request_id == 3
 
+    def test_result_supports_sizes_over_2_gib(
+        self, tmp_path: Path, monkeypatch: Any
+    ) -> None:
+        big_size = 5 * 1024**3
+        monkeypatch.setattr(
+            "app.sort.mod_sorting.path_to_folder_size", lambda _uuid: big_size
+        )
+        worker = FolderSizeRequestWorker()
+        spy = QSignalSpy(worker.result)
+        worker.requested.emit(str(tmp_path), 1)
+        assert spy.count() == 1
+        _, _, size = spy.at(0)
+        assert size == big_size
+
     def test_result_zero_when_metadata_missing(
         self, tmp_path: Path, mock_metadata_controller: Any
     ) -> None:

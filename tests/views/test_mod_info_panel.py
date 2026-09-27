@@ -296,6 +296,25 @@ def test_folder_size_error_shows_not_available(
     assert panel.mod_info_folder_size_value.text() == "Not available"
 
 
+def test_folder_size_over_2_gib_is_displayed(
+    panel: ModInfoPanel,
+    qtbot: Any,
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    """Test that folder sizes beyond the 32-bit int range reach the label intact."""
+    big_size = 5 * 1024**3
+    monkeypatch.setattr(
+        "app.sort.mod_sorting.path_to_folder_size", lambda _uuid: big_size
+    )
+    panel._set_folder_size_info(str(tmp_path))
+    qtbot.waitUntil(
+        lambda: panel.mod_info_folder_size_value.text() != "Calculating...",
+        timeout=5000,
+    )
+    assert panel.mod_info_folder_size_value.text() == format_file_size(big_size)
+
+
 def test_stale_folder_size_results_are_ignored(panel: ModInfoPanel) -> None:
     """Test that results for a previously displayed mod are discarded."""
     panel._current_uuid = "modB"
